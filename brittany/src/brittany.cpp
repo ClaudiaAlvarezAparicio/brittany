@@ -12,6 +12,11 @@ int main(int argc, char** argv){
 
   ros::spin();
 
+  // If the execution depends of a rosbag, at final return data
+  if (bl->rosbag == true){
+    bl->identifyPeople();
+  }
+  
   return 0;
 }
 
@@ -19,7 +24,6 @@ int main(int argc, char** argv){
 Brittany::Brittany(ros::NodeHandle nh):range_person(0.50){
   // Save params
   nh.getParam("rosbag", this->rosbag);
-  nh.getParam("brittanyTimer", this->brittanyTimer);
 
   // Publishers and subscribers
   petra_sub = nh.subscribe("/people", 1000, &Brittany::petraCallback, this);
@@ -30,8 +34,6 @@ Brittany::Brittany(ros::NodeHandle nh):range_person(0.50){
   this->network = new NetworkPrediction();
 
   if(this->rosbag == true){
-    sleep(1);
-    timer = nh.createTimer(ros::Duration(this->brittanyTimer), &Brittany::timerCallback, this);
     this->globalStartStop=true;
   }else{
     start_stop_sub = nh.subscribe("/start_stop_brittany", 1, &Brittany::startStopCallback, this);
@@ -62,13 +64,6 @@ void Brittany::startStopCallback(const std_msgs::String& startStop){
     this->globalStartStop=false;
     this->identifyPeople();
   }
-}
-
-/* 
- * Only with rosbag execution: Timer to start to processing the data 
- */
-void Brittany::timerCallback(const ros::TimerEvent& t){
-  this->identifyPeople();
 }
 
 void Brittany::petraCallback(const petra::People& petra){
@@ -242,6 +237,7 @@ void Brittany::getPointInMatrix(geometry_msgs::Point pointLaser, int *i, int *j)
  * 
  */
 void Brittany::identifyPeople(){
+   std::cout << "+++++++++++ Processing Users identification... +++++++++++" << '\n';
   // Create images with concat_10_3 configuration
   std::vector< cv::Mat > images_person;
   std::vector< std::vector<float> > predictions;
@@ -321,8 +317,6 @@ void Brittany::identifyPeople(){
     }
 
   }
-
-  ros::shutdown();
-
-
+  std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << '\n';
+  //ros::shutdown();
 }

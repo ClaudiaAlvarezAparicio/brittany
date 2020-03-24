@@ -24,6 +24,11 @@ namespace brittany{
       Brittany(ros::NodeHandle nh);
       ~Brittany();
       bool rosbag;
+      /////
+
+      void identifyPeople();
+      NetworkPrediction* network;
+      std::vector<Person*> vectorPeople;
 
 
 
@@ -31,10 +36,8 @@ namespace brittany{
       ros::Subscriber scan_sub, petra_sub, start_stop_sub;
       ros::Publisher restart_petra_pub, identificador_pub;
       std::vector<sensor_msgs::LaserScan> historicScan;
-      NetworkPrediction* network;
-      std::vector<Person*> vectorPeople;
+      
       float range_person;
-      float brittanyTimer;
       ros::Timer timer;
       bool globalStartStop;
 
@@ -50,7 +53,7 @@ namespace brittany{
       geometry_msgs::Point getPointXY(float range, int index, float angleIncrement, float angleMin);
       void getPointInMatrix(geometry_msgs::Point pointLaser, int *i, int *j);
       bool is_in_range(geometry_msgs::Point point_person, geometry_msgs::Point point_laser);
-      void identifyPeople();
+      
 
   };
 };
