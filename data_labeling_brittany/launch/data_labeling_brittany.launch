@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <param name="use_sim_time" value="true" />
+  <arg name="scan_topic" default="/scan" />
+  <arg name="rosbag_file" default="" />
+  <arg name="rosbag_start_delay" default="4.0" />
+  <arg name="npy_directory" default="$(find data_labeling_brittany)/npy_files/"/>
+
+  <node pkg="data_labeling_brittany" type="data_labeling_brittany" name="data_labeling" args="" output="screen">
+    <param name="rosbag_file" value="$(arg rosbag_file)" />
+    <param name="npy_directory" value="$(arg npy_directory)" />
+  </node>
+
+	<node pkg="petra" type="petra" name="petra" args="" output="screen">
+    <rosparam file="$(find petra)/config/parameters.yaml" command="load" />
+  </node>
+
+	<node pkg="rosbag" type="play" name="player" output="screen" args=" --clock $(arg rosbag_file)" required="true"
+    launch-prefix="bash -c 'sleep $(arg rosbag_start_delay); $0 $@' "/>
+
+</launch>

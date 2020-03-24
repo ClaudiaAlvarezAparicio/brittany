@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="rosbag_file" default="false" />
+
+  <node pkg="brittany" type="brittany" name="brittany" args="" output="screen" required="true">
+    <param name="rosbag" value="false" />
+  </node>
+
+	<node pkg="petra" type="petra" name="petra" args="" output="screen">
+    <rosparam file="$(find petra)/config/parameters.yaml" command="load" />
+  </node>
+
+</launch>
