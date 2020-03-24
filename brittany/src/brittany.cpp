@@ -73,12 +73,14 @@ void Brittany::petraCallback(const petra::People& petra){
     int positionPerson;
     for (int i=0; i < petra.people.size(); i++){
       Person * person;
-      positionPerson = getPositionPersonVector(petra.people[i].name);
+      //positionPerson = getPositionPersonVector(petra.people[i].name);
+      positionPerson = getPositionPersonVector("person_0");
 
       // If no person with this identifier exists, is created.
       if(positionPerson == -1){
         person = new Person();
-        person->id=petra.people[i].name;
+        //person->id=petra.people[i].name;
+        person->id="person_0";
         vectorPeople.push_back(person);
       }else{
         person = vectorPeople[positionPerson];
@@ -237,12 +239,12 @@ void Brittany::getPointInMatrix(geometry_msgs::Point pointLaser, int *i, int *j)
  * 
  */
 void Brittany::identifyPeople(){
-   std::cout << "+++++++++++ Processing Users identification... +++++++++++" << '\n';
   // Create images with concat_10_3 configuration
   std::vector< cv::Mat > images_person;
   std::vector< std::vector<float> > predictions;
+
   for (int i = 0; i< this->vectorPeople.size(); i++){ // select person 
-    predictions.clear(); // clar vector predictions 
+    predictions.clear(); // clear vector predictions 
     images_person = this->vectorPeople[i]->vectorImages; // take matrix vector
     for(int j = 0; j < images_person.size() - 30;j++){
       cv::Mat aux = images_person[j]; // For each matrix
@@ -258,7 +260,11 @@ void Brittany::identifyPeople(){
         }
       }
       // Add the new image to the predictions vector
-      predictions.push_back(this->network->prediction(aux));
+      if (predictions.size() < 10){
+        predictions.push_back(this->network->prediction(aux));
+      }else{
+        break;
+      }      
     }
 
     // The total counter vector has a length of 5, the number of people that the network could recognize 
@@ -301,7 +307,6 @@ void Brittany::identifyPeople(){
   }
 
 
-
   // Publish the data in terminal and in topic "/brittany"
   for (int i = 0; i < this->vectorPeople.size(); i++){
     std_msgs::String usuario;
@@ -318,5 +323,5 @@ void Brittany::identifyPeople(){
 
   }
   std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << '\n';
-  //ros::shutdown();
+  ros::shutdown();
 }

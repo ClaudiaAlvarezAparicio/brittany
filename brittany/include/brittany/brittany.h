@@ -24,8 +24,6 @@ namespace brittany{
       Brittany(ros::NodeHandle nh);
       ~Brittany();
       bool rosbag;
-      /////
-
       void identifyPeople();
       NetworkPrediction* network;
       std::vector<Person*> vectorPeople;
