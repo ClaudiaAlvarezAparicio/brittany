@@ -74,6 +74,7 @@ void Brittany::petraCallback(const petra::People& petra){
     for (int i=0; i < petra.people.size(); i++){
       Person * person;
       //positionPerson = getPositionPersonVector(petra.people[i].name);
+      // Because we only have one person in each scene
       positionPerson = getPositionPersonVector("person_0");
 
       // If no person with this identifier exists, is created.
@@ -239,6 +240,7 @@ void Brittany::getPointInMatrix(geometry_msgs::Point pointLaser, int *i, int *j)
  * 
  */
 void Brittany::identifyPeople(){
+  std::cout << "+++++++++++ Processing Users identification... +++++++++++" << '\n';  
   // Create images with concat_10_3 configuration
   std::vector< cv::Mat > images_person;
   std::vector< std::vector<float> > predictions;
