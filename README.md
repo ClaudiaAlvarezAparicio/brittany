@@ -35,3 +35,36 @@ Execution in real time:
 ```
 $ roslaunch brittany brittany.launch
 ```
+
+## Docker Image   
+To test Brittany we have create a docker image, steps to test it:  
+```  
+$ docker pull claudiaalvarezaparicio/brittany:kinetic  
+$ docker run -d -p 6901:6901 -e VNC_PW=brittany --name=brittany claudiaalvarezaparicio/brittany:kinetic  
+```  
+In the browser: http://localhost:6901/  
+Password: brittany  
+  
+### Execute Brittany in docker  
+Open terminal:   
+  
+* Example with a user of the system  
+```  
+$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/user0-kitchen-07.bag  
+```  
+Output in terminal:  
+```  
++++++++++++ Processing Users identification... +++++++++++  
+Person with identifier: person_0. Is the user: user_0  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+```  
+* Example with a NO user of the system:  
+```  
+$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/rosbags_no_user/no-user-livingroom-door-02.bag  
+```  
+Output in terminal:  
+```  
++++++++++++++++ Processing Users identification... +++++++++++++++  
+Person with identifier: person_0. IS NOT IDENTIFIED IN THE SYSTEM  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+```  
