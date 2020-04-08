@@ -9,7 +9,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-* ROS KINETIC
+* ROS KINETIC or ROS MELODIC
 * Petra (People Tracking). Follow the steps in https://github.com/ClaudiaAlvarezAparicio/petra to install.
 
 
