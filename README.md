@@ -1,7 +1,6 @@
 # BRITTANY (Biometric RecognITion Through gAit aNalYsis)
 
-Brittany is a tool which allows a Biometric recognition through gait analysis by using LIDAR sensors. The system is based on a classification neural network which allow identify 5 diferent users of the system or intruders in it.
-
+Brittany allows a Biometric recognition through gait analysis by using LIDAR sensors. The system is based on a classification neural network which allow identify 5 diferent users in the system or intruders in it.
 
 ## Getting Started
 
@@ -37,11 +36,18 @@ $ roslaunch brittany brittany.launch
 ```
 
 ## Docker Image   
-To test Brittany we have create a docker image, steps to test it:  
+To test Brittany we have create a docker image, steps to launch it:  
+* ROS Kinetic
 ```  
 $ docker pull claudiaalvarezaparicio/brittany:kinetic  
 $ docker run -d -p 6901:6901 -e VNC_PW=brittany --name=brittany claudiaalvarezaparicio/brittany:kinetic  
 ```  
+* ROS Melodic
+```  
+$ docker pull claudiaalvarezaparicio/brittany:melodic  
+$ docker run -d -p 6901:6901 -e VNC_PW=brittany --name=brittany claudiaalvarezaparicio/brittany:melodic  
+```  
+
 In the browser: http://localhost:6901/  
 Password: brittany  
   
@@ -67,4 +73,9 @@ Output in terminal:
 +++++++++++++++ Processing Users identification... +++++++++++++++  
 Person with identifier: person_0. IS NOT IDENTIFIED IN THE SYSTEM  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+```  
+## Stop and Remove Docker Container   
+```  
+$ docker stop brittany
+$ docker rm brittany 
 ```  
