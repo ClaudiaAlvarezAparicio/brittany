@@ -36,7 +36,7 @@ $ roslaunch brittany brittany.launch
 ```
 
 ## Docker Image   
-To test Brittany we have create a docker image, steps to launch it:  
+To test Brittany we have create two docker images, steps to launch it:  
 * ROS Kinetic
 ```  
 $ docker pull claudiaalvarezaparicio/brittany:kinetic  
