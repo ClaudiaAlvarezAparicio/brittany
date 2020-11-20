@@ -251,11 +251,11 @@ void Brittany::identifyPeople(){
 
     // Through the list of predictions, the user who has a higher probability increases the counter of his position
     for (int i = 0; i < predictions.size(); i++){
-      cout << "Prediccion " << i << ": ";
+      //cout << "Prediccion " << i << ": ";
       mayor_porcentaje = -1;
       valor_prediccion = 0.0;
       for(int j = 0; j < predictions[i].size();j++){
-        std::cout << predictions[i][j] << '\t';
+        //std::cout << predictions[i][j] << '\t';
         if(predictions[i][j] > valor_prediccion){
           mayor_porcentaje = j;
           valor_prediccion = predictions[i][j];
@@ -264,7 +264,7 @@ void Brittany::identifyPeople(){
       if(mayor_porcentaje != -1){
         total_counter[mayor_porcentaje] = total_counter[mayor_porcentaje] + 1;
       }
-        cout << "\n";
+      //  cout << "\n";
     }
 
     // Go through the vector of the counter to take the user who has more hits

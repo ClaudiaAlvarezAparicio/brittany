@@ -70,9 +70,17 @@ $ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_b
 ```  
 Output in terminal:  
 ```  
-+++++++++++++++ Processing Users identification... +++++++++++++++  
-Person with identifier: person_0. IS NOT IDENTIFIED IN THE SYSTEM  
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
++++++++++++ Processing Users identification... +++++++++++  
+The user is: user_1  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+
+OR
+
++++++++++++ Processing Users identification... +++++++++++  
+The user is: NOT IDENTIFIED IN THE SYSTEM  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+
+
 ```  
 ## Stop and Remove Docker Container   
 ```  
