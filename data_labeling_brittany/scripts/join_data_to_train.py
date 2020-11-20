@@ -12,30 +12,26 @@ image_cols = 256
 
 # Returns true if the directory exist, if not return false
 def is_directory_correct(directory):
-    return os.path.isdir(directory+"/")
+    return os.path.isdir(directory) 
 
 # Returns two list with the files .npy containing in the directory received
 def get_files_npy(directory):
     listNPY_raw = []
     listNPY_label = []
 
-    directory_raw = directory
-
+    directory_raw = directory + "/raw/"
     # For each item in the directory /raw
     for item in listdir(directory_raw):
-
-        # Test if item is a file
+        # Test if item is a file 
         if isfile(directory_raw+item):
-
             # Test if the extension is .npy
             (nombreFichero, extension) = os.path.splitext(directory_raw+item)
-
             if(extension == ".npy"):
-                # test if the file is in the label directory
-                if isfile(directory+"/class/"+item):
+                # test if the file is in the label directory 
+                if isfile(directory+"/label/"+item):
                     # Add both files to the lists
-                    listNPY_raw.append(directory+"/"+item)
-                    listNPY_label.append(directory+"/class/"+item)
+                    listNPY_raw.append(directory+"/raw/"+item)
+                    listNPY_label.append(directory+"/label/"+item)   
 
     return listNPY_raw, listNPY_label
 
@@ -58,32 +54,33 @@ def join_data_npy(listNPY_raw, listNPY_label, directory):
         for j in range( 0, data_raw.shape[0]):
             npy_raw_global.append(data_raw[j])
             npy_label_global.append(data_label[j])
-
+ 
     save_npy_global(npy_raw_global, npy_label_global, directory)
 
 
 # Methot that creates two npy files with the information that receives
 def save_npy_global(npy_raw_global, npy_label_global, directory):
-    npy_raw = np.ndarray((len(npy_raw_global), image_rows, image_cols), dtype=np.float32)
+    
+    npy_raw = np.ndarray((len(npy_raw_global), image_rows, image_cols), dtype=np.uint8)
     npy_label = np.ndarray((len(npy_label_global)), dtype=np.uint8)
-
+    
     for i in range(0, len(npy_raw_global)):
-        npy_raw[i] = np.array([npy_raw_global[i][:,:,0]])
-        npy_label[i] = np.array(npy_label_global[i])
+        npy_raw[i] = np.array([npy_raw_global[i]])
+        npy_label[i] = np.array([npy_label_global[i]])
 
 
-    np.save(directory +'/npy_total_raw.npy', npy_raw)
-    np.save(directory +'/npy_total_label.npy', npy_label)
+    np.save(directory +'/raw/npy_total.npy', npy_raw)
+    np.save(directory +'/label/npy_total.npy', npy_label)
 
     print("="*100)
     print("Files created:")
-    print("%s/npy_total_raw.npy. Size:  %s" % (directory, npy_raw.shape))
-    print("%s/npy_total_label.npy. Size:  %s" % (directory, npy_label.shape))
+    print("%s/raw/npy_total.npy. Size:  %s" % (directory, npy_raw.shape))
+    print("%s/label/npy_total.npy. Size:  %s" % (directory, npy_label.shape))
     print("="*100)
 
 
 def start(args):
-
+    
     directory = args[1]
 
     if not is_directory_correct(directory):

@@ -10,9 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   tensorflow_ros_cpp
   OpenCV
+  message_filters
 )
 
 catkin_package(
+ INCLUDE_DIRS include 
+ CATKIN_DEPENDS message_filters
 )
 
 include_directories(

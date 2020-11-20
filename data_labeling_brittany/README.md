@@ -13,27 +13,21 @@ The following configurations have been created to get the best neural network mo
 
 ## Tree of directories
 * /rosbags  
-* /npy_global_files  
-	* /npy_train  
-	* /npy_label  
+* /npy  
+	* /raw  
+	* /label  
 
 ## Steps
 
-1.- To create the images execute script generate_npys.sh:  
+1.- Divide rosbags in two directories, one for train another for test.
+
+2.- To create the data for training exexcute generate_npys.sh:  
 ```
 $ cd data_labeling_brittany/scripts/  
-$ ./generate_npys.sh <absolute_path_rosbags> <absolute_path_where_save_npys>  
+$ ./generate_npys.sh <absolute_path_rosbags> <absolute_path_to_npy_folder>  
 ```
 
-2.- Divide npys in two directories, one for train another for test.  
-
-3.- Create the class for each npy file, execute create_npy_class.py:  
-```
-$ cd data_labeling_brittany/scripts/  
-$ python create_npy_class.py <absolute_path_npy_files_train>  
-$ python create_npy_class.py <absolute_path_npy_files_test>  
-```
-4.- Join data to train the neural network model, execute join_data_to_train.py:  
+3.- Join data to train the neural network model, execute join_data_to_train.py:  
 ```
 $ cd data_labeling_brittany/scripts/  
 $ python join_data_to_train.py <absolute_path_npy_global_directory>  

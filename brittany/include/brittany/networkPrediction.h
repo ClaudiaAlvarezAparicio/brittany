@@ -20,7 +20,7 @@ using namespace cv;
 namespace networkprediction{
   class NetworkPrediction{
   public:
-    NetworkPrediction();
+    NetworkPrediction(std::string networkModel);
     ~NetworkPrediction();
     std::vector<float> prediction(cv::Mat image);
 

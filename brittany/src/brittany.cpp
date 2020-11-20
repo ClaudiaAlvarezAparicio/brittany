@@ -16,22 +16,35 @@ int main(int argc, char** argv){
   if (bl->rosbag == true){
     bl->identifyPeople();
   }
-  
+
+  bl->~Brittany();
   return 0;
 }
 
 
 Brittany::Brittany(ros::NodeHandle nh):range_person(0.50){
+  std::string networkModel;
   // Save params
   nh.getParam("rosbag", this->rosbag);
+  nh.getParam("scan_topic", this->scan_topic);
+  nh.getParam("rosbag_file", this->rosbag_file);
+  nh.getParam("num_img_concat", num_images);
+  nh.getParam("num_steps_between_concat", num_steps);
+  nh.getParam("networkModel", networkModel);
 
   // Publishers and subscribers
-  petra_sub = nh.subscribe("/people", 1000, &Brittany::petraCallback, this);
-  scan_sub = nh.subscribe("/scan", 1000, &Brittany::scanCallback, this);
   identificador_pub = nh.advertise<std_msgs::String>("/brittany",1);
+  people_sub.subscribe(nh, "/people", 1);
+  scan_sub.subscribe(nh, this->scan_topic, 1);
+  // LIDAR and PeTra
+  sync.reset(new Sync(MySyncPolicy(10), people_sub, scan_sub));      
+  sync->registerCallback(boost::bind(&Brittany::peopleScanCallback, this, _1, _2));
 
   // Object to predict images
-  this->network = new NetworkPrediction();
+  this->network = new NetworkPrediction(networkModel);
+
+  // Object with data of the person to identify
+  person_to_identify = new Person();
 
   if(this->rosbag == true){
     this->globalStartStop=true;
@@ -66,55 +79,39 @@ void Brittany::startStopCallback(const std_msgs::String& startStop){
   }
 }
 
-void Brittany::petraCallback(const petra::People& petra){
+void Brittany::peopleScanCallback(const petra::PeopleConstPtr& people, const sensor_msgs::LaserScanConstPtr& scan){
   if(this->globalStartStop == true){
-    sensor_msgs::LaserScan scan = this->getLaserScan(petra.header);
+    cv::Mat image = cv::Mat::zeros(cv::Size(LENGTH_MATRIX,LENGTH_MATRIX), CV_32FC1);
+    bool find = false;
 
-    int positionPerson;
-    for (int i=0; i < petra.people.size(); i++){
-      Person * person;
-      //positionPerson = getPositionPersonVector(petra.people[i].name);
-      // Because we only have one person in each scene
-      positionPerson = getPositionPersonVector("person_0");
+    this->person_to_identify->id="person_0";
+    this->person_to_identify->accuracy=0;
 
-      // If no person with this identifier exists, is created.
-      if(positionPerson == -1){
-        person = new Person();
-        //person->id=petra.people[i].name;
-        person->id="person_0";
-        vectorPeople.push_back(person);
-      }else{
-        person = vectorPeople[positionPerson];
-      }
+    for (int i = 0; i < people->people.size(); i++){
+      image = this->classify_scan_data(scan, people->people[i].position_person, image); 
+      find = true;  
+    }    
 
-      cv::Mat image = this->classify_scan_data(scan, petra.people[i].position_person);
-      person->vectorImages.push_back(image);
+    if (find == true){
+      this->person_to_identify->vectorImages.push_back(image); 
     }
   }
 }
 
-/*
- * LIDAR Callback
- */
-void Brittany::scanCallback(const sensor_msgs::LaserScan& scan){
-  if(this->globalStartStop == true){
-    this->historicScan.push_back(scan);
-  }
-}
 
 /*
  * Method that save in the matrix_raw, with 1s the points of the laser that compose a person
  */
-cv::Mat Brittany::classify_scan_data(sensor_msgs::LaserScan scan_info , geometry_msgs::Point point_person){
-    cv::Mat image = cv::Mat::zeros(cv::Size(LENGTH_MATRIX,LENGTH_MATRIX), CV_32FC1);
-    std::vector<float> vector_scan = scan_info.ranges;
+cv::Mat Brittany::classify_scan_data(const sensor_msgs::LaserScanConstPtr& scan_info , geometry_msgs::Point point_person, cv::Mat image){
+    //cv::Mat image = cv::Mat::zeros(cv::Size(LENGTH_MATRIX,LENGTH_MATRIX), CV_32FC1);
+    std::vector<float> vector_scan = scan_info->ranges;
     geometry_msgs::Point point_laser;
     bool in_range = false;
     int j, k = 0;
     for (int i= 0; i < vector_scan.size(); i++){
       if (this->isGoodValue(vector_scan[i]) == true){
             // Calculate the xy point from the angle/range
-            point_laser = this->getPointXY(vector_scan[i],i, scan_info.angle_increment, scan_info.angle_min);
+            point_laser = this->getPointXY(vector_scan[i],i, scan_info->angle_increment, scan_info->angle_min);
 
             // Calculate if the point is in range of the person
             in_range = this-> is_in_range(point_person, point_laser);
@@ -126,38 +123,6 @@ cv::Mat Brittany::classify_scan_data(sensor_msgs::LaserScan scan_info , geometry
       }
     }
     return image;
-}
-
-/*
- * Return the LIDAR SCAN closest in time to PeTra data
- */
-sensor_msgs::LaserScan Brittany::getLaserScan(std_msgs::Header header_petra){
-  sensor_msgs::LaserScan scan;
-  int position = 0;
-  for (int i = 0; i< this->historicScan.size(); i++){
-    if(this->historicScan[i].header.stamp == header_petra.stamp){
-      scan = historicScan[i];
-      position = i;
-    }
-  }
-  // Remove the previous scans
-  this->historicScan.erase(this->historicScan.begin(), this->historicScan.begin()+position);
-  // return scan msg
-  return scan;
-}
-
-/* 
- * Return the position of the person received in the global vector of people 
- */
-int Brittany::getPositionPersonVector(std::string name){
-  int position = -1;
-  for(int i = 0; i < vectorPeople.size(); i++){
-    if(vectorPeople[i]->id == name){
-      position = i;
-      break;
-    }
-  }
-  return position;
 }
 
 /*
@@ -240,17 +205,21 @@ void Brittany::getPointInMatrix(geometry_msgs::Point pointLaser, int *i, int *j)
  * 
  */
 void Brittany::identifyPeople(){
-  std::cout << "+++++++++++ Processing Users identification... +++++++++++" << '\n';  
+  std::cout << "+++++++++++ Processing Users identification... +++++++++++" << '\n';
   // Create images with concat_10_3 configuration
   std::vector< cv::Mat > images_person;
   std::vector< std::vector<float> > predictions;
 
-  for (int i = 0; i< this->vectorPeople.size(); i++){ // select person 
-    predictions.clear(); // clear vector predictions 
-    images_person = this->vectorPeople[i]->vectorImages; // take matrix vector
-    for(int j = 0; j < images_person.size() - 30;j++){
+  predictions.clear(); // clear vector predictions 
+  images_person = this->person_to_identify->vectorImages; // take matrix vector
+
+  int aux_value = num_images * num_steps;
+
+  // If there was more images than the needed
+  if (images_person.size() >= aux_value){
+    for(int j = 0; j < images_person.size() - aux_value;j++){
       cv::Mat aux = images_person[j]; // For each matrix
-      for(int k = j; k < j + 30; (k = k + 3)){ // The next matrix (3 hop)
+      for(int k = j; k < (j + aux_value); (k = k + num_steps)){ // The next matrix (3 hop)
         for (int l = 0; l < LENGTH_MATRIX; l++){ // For the rows of the matrix
           for (int m = 0; m < LENGTH_MATRIX; m++){
             if(aux.at<float>(l,m)+images_person[k].at<float>(l,m) == 0){
@@ -261,25 +230,32 @@ void Brittany::identifyPeople(){
           }
         }
       }
-      // Add the new image to the predictions vector
-      if (predictions.size() < 10){
-        predictions.push_back(this->network->prediction(aux));
-      }else{
-        break;
-      }      
+      predictions.push_back(this->network->prediction(aux));
     }
-
+    // To print the float values with two decimals  
+    std::cout << std::setprecision(2);
+    // To print the name of the rosbaf file    
+    if (this->rosbag == true){
+      size_t found = this->rosbag_file.find_last_of("/");
+      this->rosbag_file.replace(0,found,"");
+    }
+      
+    //cout << "Rosbag: " << this->rosbag_file << "\n";
+    //cout << "Numero de imagenes: " << this->person_to_identify->vectorImages.size() << "\n";
+    //cout << "Numero de mapas de ocupacion: " << predictions.size() << "\n";
+     
     // The total counter vector has a length of 5, the number of people that the network could recognize 
     std::vector<int> total_counter(5, 0);
     int mayor_porcentaje = 0;
     float valor_prediccion = 0.0;
 
-
     // Through the list of predictions, the user who has a higher probability increases the counter of his position
     for (int i = 0; i < predictions.size(); i++){
+      cout << "Prediccion " << i << ": ";
       mayor_porcentaje = -1;
       valor_prediccion = 0.0;
       for(int j = 0; j < predictions[i].size();j++){
+        std::cout << predictions[i][j] << '\t';
         if(predictions[i][j] > valor_prediccion){
           mayor_porcentaje = j;
           valor_prediccion = predictions[i][j];
@@ -288,6 +264,7 @@ void Brittany::identifyPeople(){
       if(mayor_porcentaje != -1){
         total_counter[mayor_porcentaje] = total_counter[mayor_porcentaje] + 1;
       }
+        cout << "\n";
     }
 
     // Go through the vector of the counter to take the user who has more hits
@@ -300,30 +277,35 @@ void Brittany::identifyPeople(){
       }
     }
 
-    this->vectorPeople[i]->authentication_id = "user_" + std::to_string(posicion_persona);
+    this->person_to_identify->authentication_id = "user_" + std::to_string(posicion_persona);
 
     // Percentage
-    float porcentaje = ( total_counter[posicion_persona] * 100 ) /  predictions.size();
+    float percentaje = ( total_counter[posicion_persona] * 100 ) /  predictions.size();
 
-    this->vectorPeople[i]->accuracy = porcentaje;
-  }
+    this->person_to_identify->accuracy = percentaje;
+  } // End if there was more images than the needed
+    
 
 
   // Publish the data in terminal and in topic "/brittany"
-  for (int i = 0; i < this->vectorPeople.size(); i++){
-    std_msgs::String usuario;
-
-    if (this->vectorPeople[i]->accuracy > 70) {
-      std::cout << "Person with identifier: "<< this->vectorPeople[i]->id << ". Is the user: " << this->vectorPeople[i]->authentication_id << '\n';
-      usuario.data = this->vectorPeople[i]->id + " --> " + this->vectorPeople[i]->authentication_id;
-      identificador_pub.publish(usuario);
-    }else{
-      std::cout << "Person with identifier: "<< this->vectorPeople[i]->id << ". IS NOT IDENTIFIED IN THE SYSTEM" << '\n';
-      usuario.data = this->vectorPeople[i]->id + " --> NOT IDENTIFIED IN THE SYSTEM";
-      identificador_pub.publish(usuario);
-    }
-
+  std_msgs::String usuario;
+  //cout << "Precision: " << this->person_to_identify->accuracy << "\n";
+  if (this->person_to_identify->accuracy >= 85) {
+    std::cout << "The user is: " << this->person_to_identify->authentication_id << '\n';
+    usuario.data = this->person_to_identify->id + " --> " + this->person_to_identify->authentication_id;
+  }else if(this->person_to_identify->accuracy != 0){
+    std::cout << "The user is: NOT IDENTIFIED IN THE SYSTEM" << '\n';
+    usuario.data = this->person_to_identify->id + " --> NOT IDENTIFIED IN THE SYSTEM";
+  }else{
+    std::cout << "The user is: NOT ENOUGH DATA" << '\n';
+    usuario.data = this->person_to_identify->id + " --> NOT ENOUGH DATA";
   }
+
+  identificador_pub.publish(usuario);
+
   std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << '\n';
-  ros::shutdown();
+  
+  if(this->rosbag == true){
+    ros::shutdown();
+  }
 }

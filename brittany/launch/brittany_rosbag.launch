@@ -1,15 +1,25 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="rosbag_file" default="" />
+  <arg name="scan_topic" default="/scan" />
   <param name="use_sim_time" value="true" />
-  <arg name="rosbag_start_delay" default="1.0" />
+  <arg name="rosbag_start_delay" default="4.0" />
+  <arg name="num_img_concat" default="10" /> <!-- Number of images to concatenate -->
+  <arg name="num_steps_between_concat" default="2" /> <!-- Number of steps between the images-->
+  <arg name="networkModel" default="concat_10_2.pb" />
 
   <node pkg="brittany" type="brittany" name="brittany" args="" output="screen" required="true">
     <param name="rosbag" value="true" />
+    <param name="scan_topic" value="$(arg scan_topic)" />
+    <param name="rosbag_file" value="$(arg rosbag_file)" />
+    <param name="num_img_concat" value="$(arg num_img_concat)" />
+    <param name="num_steps_between_concat" value="$(arg num_steps_between_concat)" />
+    <param name="networkModel" value="$(arg networkModel)" />
   </node>
 
 	<node pkg="petra" type="petra" name="petra" args="" output="screen">
     <rosparam file="$(find petra)/config/parameters.yaml" command="load" />
+    <param name="scanTopic" value="$(arg scan_topic)" />
   </node>
 
 	<node pkg="rosbag" type="play" name="player" output="screen" args=" --clock $(arg rosbag_file) /rb1_base/front_laser/scan:=/scan" required="true"

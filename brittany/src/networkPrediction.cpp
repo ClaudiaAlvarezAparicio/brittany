@@ -2,9 +2,9 @@
 
 using namespace networkprediction;
 
-NetworkPrediction::NetworkPrediction(){
+NetworkPrediction::NetworkPrediction(std::string networkModel){
   // Load graph
-  this->status = ReadBinaryProto(Env::Default(), ros::package::getPath("brittany") + "/model/model_concat_10_3.pb", &graph_def);
+  this->status = ReadBinaryProto(Env::Default(), ros::package::getPath("brittany") + "/model/" + networkModel, &graph_def);
   if (!this->status.ok()) {
     std::cout << this->status.ToString() << "\n";
     ros::shutdown();

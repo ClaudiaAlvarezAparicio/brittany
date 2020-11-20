@@ -5,15 +5,19 @@ if [ $# -eq 2 ]; then
 	path_npys=$2
 
 	cd $path_rosbags
-	files=( $( ls . ) )
+	data=( $( ls . ) )	
 
-	for i in "${files[@]}"
+	for i in "${data[@]}"
 	do
-		echo "Procesing $i file"
-		roslaunch data_labeling_brittany data_labeling_brittany.launch rosbag_file:='$path_rosbags/$i' npy_directory:='$path_npys/'
-		echo "File $i procesed"
+		cd $path_rosbags"/$i"
+		bags=( $( ls . | grep .bag ) ) 	
+
+		for j in "${bags[@]}"
+		do
+			roslaunch data_labeling_brittany data_labeling_brittany.launch rosbag_file:=$path_rosbags"$i/$j" npy_directory:=$path_npys id_label_person:="$i"
+		done	
+
 	done
 else
     echo "./generate_npys.sh <absolute_path_rosbags> <absolute_path_where_save_npys>"
 fi
-

@@ -2,9 +2,7 @@
 
 using namespace data_labeling_brittany;
 
-//using namespace cv;
 using namespace std;
-using namespace message_filters;
 
 int main(int argc, char** argv){
 
@@ -19,71 +17,55 @@ int main(int argc, char** argv){
   std::vector<std::vector<int> > vector_save = bl->concatenate_vector();
   // save npy file
   bl->save_npy(vector_save);
+  bl->~DataLabelingBrittany();
 
   return 0;
 }
 
 DataLabelingBrittany::DataLabelingBrittany(ros::NodeHandle nh):range_person(0.50){
   // Save params
-  nh.getParam("rosbag_file", this->rosbag);
-  nh.getParam("npy_directory", this->directory);
+  nh.getParam("rosbag_file", rosbag);
+  nh.getParam("npy_directory", directory);
   nh.getParam("scan_topic", this->scan_topic);
-  
+  nh.getParam("id_label_person", id_label_person);
+  nh.getParam("num_img_concat", num_images);
+  nh.getParam("num_steps_between_concat", num_steps);
 
-  // Publishers and subscribers
-  petra_sub = nh.subscribe("/people", 1, &DataLabelingBrittany::petraCallback, this);
-  scan_sub = nh.subscribe(this->scan_topic, 1, &DataLabelingBrittany::scanCallback, this);
-  // Matrix initialization
-  this->initialize_matrix();
+  // Sincronizamos la recogida de datos del LIDAR y de PeTra
+  people_sub.subscribe(nh, "/people", 1);
+  scan_sub.subscribe(nh, this->scan_topic, 1);
+  
+  sync.reset(new Sync(MySyncPolicy(10), people_sub, scan_sub));      
+  sync->registerCallback(boost::bind(&DataLabelingBrittany::peopleScanCallback, this, _1, _2));
 }
 
-void DataLabelingBrittany::petraCallback(const petra::People& petra){
-    // Get lidar scan
-    sensor_msgs::LaserScan scan = this->getLaserScan(petra.header);
+void DataLabelingBrittany::peopleScanCallback(const petra::PeopleConstPtr& people, const sensor_msgs::LaserScanConstPtr& scan){
 
-    petra::Person person;
     // Matrix initialization
     this->initialize_matrix();
+    bool find = false;
 
-    for (int i = 0; i < petra.people.size(); i++){
-      this->classify_scan_data(scan, petra.people[i].position_person);
+    for (int i = 0; i < people->people.size(); i++){
+      this->classify_scan_data(scan, people->people[i].position_person); 
+      find = true;  
+    }    
+
+    if (find == true){
+      vector_matrix.push_back(this->matrix_to_vector(matrix));  
     }
 }
-
-
-void DataLabelingBrittany::scanCallback(const sensor_msgs::LaserScan& scan){
-  this->historicScan.push_back(scan);
-}
-
-/*
- * Method that returns the lidar scan with the same  timestamp than petra
- */
-sensor_msgs::LaserScan DataLabelingBrittany::getLaserScan(std_msgs::Header header_petra){
-  sensor_msgs::LaserScan scan;
-  int position = 0;
-  for (int i = 0; i< this->historicScan.size(); i++){
-    if(this->historicScan[i].header.stamp == header_petra.stamp){
-      scan = historicScan[i];
-      position = i;
-    }
-  }
-  // Remove the previous scans
-  this->historicScan.erase(this->historicScan.begin(), this->historicScan.begin()+position);
-  // return scan msgs
-  return scan;
-}
-
 
 /*
  *  Method that save in the matrix_raw, the points of the lidar where was a person. Saved as 1's 
  */
-void DataLabelingBrittany::classify_scan_data(sensor_msgs::LaserScan scan_info , geometry_msgs::Point point_person){
-    std::vector<float> vector_scan = scan_info.ranges;
-    geometry_msgs::Point point_laser;
-    bool in_range = false;
-    int j, k, count_points_label = 0;
+void DataLabelingBrittany::classify_scan_data(const sensor_msgs::LaserScanConstPtr& scan_info , geometry_msgs::Point point_person){
+  std::vector<float> vector_scan = scan_info->ranges;
+  geometry_msgs::Point point_laser;
+  bool in_range = false;
+  int j, k, count_points_label = 0;
 
-    for (int i= 0; i < vector_scan.size(); i++){
+
+  for (int i= 0; i < vector_scan.size(); i++){
        j = k = 0;
       // If the range is good
        if (this->is_good_value(vector_scan[i]) == true){
@@ -101,7 +83,6 @@ void DataLabelingBrittany::classify_scan_data(sensor_msgs::LaserScan scan_info ,
          }
        }
     }
-    this->vector_matrix.push_back(this->matrix_to_vector(matrix));
 
 }
 
@@ -154,7 +135,7 @@ bool DataLabelingBrittany::is_in_range(geometry_msgs::Point point_person, geomet
  * Method that transform the range provided by the laser to polar coordinates
  * Return a Point object with the point in cartesian coordinates (x,y)
  */
-geometry_msgs::Point DataLabelingBrittany::get_point_xy(float range, int index,sensor_msgs::LaserScan scan_data){
+geometry_msgs::Point DataLabelingBrittany::get_point_xy(float range, int index, const sensor_msgs::LaserScanConstPtr& scan_data){
 
   geometry_msgs::Point point_xy;
   float polar_d = range;
@@ -165,7 +146,7 @@ geometry_msgs::Point DataLabelingBrittany::get_point_xy(float range, int index,s
   float alfa_radians = 0;
 
   // alfa is the complementary angle in the polar coordinates
-  alfa_radians = (scan_data.angle_increment * (index + 1)) + scan_data.angle_min;
+  alfa_radians = (scan_data->angle_increment * (index + 1)) + scan_data->angle_min;
 
   // Calculate the point (x,y)
   cartesian_x = polar_d * cos(alfa_radians);
@@ -212,90 +193,16 @@ void DataLabelingBrittany::initialize_matrix(){
 
 // CREATION OF IMAGES AND SAVE NPY FILES //
 std::vector<std::vector<int> > DataLabelingBrittany::concatenate_vector(){
+  
   std::vector<std::vector<int> > vector_out;
 
-  // concat_5_1
-  //for (int i = 0; i < this->vector_matrix.size()-5; i++){
-  //  std::vector<int> aux = this->vector_matrix[i];
-  //  for (int j = i; j < i + 5; j++){
-  //    for (int k = 0; k < this->vector_matrix[j].size(); k++){
-  //      if(aux[k]+this->vector_matrix[j][k] == 0){
-  //         aux[k]=0;
-  //      }else{
-  //         aux[k]=1;
-  //      }
-  //    }
-  //  }
-  //  vector_out.push_back(aux);
-  //}
+  int aux_value = num_images * num_steps;
 
-  // concat_5_2
-  //for (int i = 0; i < this->vector_matrix.size()-10; i++){
-  //  std::vector<int> aux = this->vector_matrix[i];
-  //  for (int j = i; j < i + 10; (j = j + 2)){
-  //    for (int k = 0; k < this->vector_matrix[j].size(); k++){
-  //      if(aux[k]+this->vector_matrix[j][k] == 0){
-  //         aux[k]=0;
-  //      }else{
-  //         aux[k]=1;
-  //      }
-  //    }
-  //  }
-  //  vector_out.push_back(aux);
-  //}
-
-  // concat_5_3
-  //for (int i = 0; i < this->vector_matrix.size()-15; i++){
-  //  std::vector<int> aux = this->vector_matrix[i];
-  //  for (int j = i; j < i + 15; (j = j + 3)){
-  //    for (int k = 0; k < this->vector_matrix[j].size(); k++){
-  //      if(aux[k]+this->vector_matrix[j][k] == 0){
-  //         aux[k]=0;
-  //      }else{
-  //         aux[k]=1;
-  //      }
-  //    }
-  //  }
-  //  vector_out.push_back(aux);
-  //}
-
-  // concat_10_1
-  //for (int i = 0; i < this->vector_matrix.size()-10; i++){
-  //  std::vector<int> aux = this->vector_matrix[i];
-  //  for (int j = i; j < i + 10; j++){
-  //    for (int k = 0; k < this->vector_matrix[j].size(); k++){
-  //      if(aux[k]+this->vector_matrix[j][k] == 0){
-  //         aux[k]=0;
-  //      }else{
-  //         aux[k]=1;
-  //      }
-  //    }
-  //  }
-  //  vector_out.push_back(aux);
-  //}
-
-
-  // concat_10_2
-  //for (int i = 0; i < this->vector_matrix.size()-20; i++){
-  //  std::vector<int> aux = this->vector_matrix[i];
-  //  for (int j = i; j < i + 20; (j = j + 2)){
-  //    for (int k = 0; k < this->vector_matrix[j].size(); k++){
-  //      if(aux[k]+this->vector_matrix[j][k] == 0){
-  //         aux[k]=0;
-  //      }else{
-  //         aux[k]=1;
-  //      }
-  //    }
-  //  }
-  //  vector_out.push_back(aux);
-  //}
-
-  // concat_10_3
-  for (int i = 0; i < this->vector_matrix.size()-30; i++){
-    std::vector<int> aux = this->vector_matrix[i];
-    for (int j = i; j < i + 30; (j = j + 3)){
-      for (int k = 0; k < this->vector_matrix[j].size(); k++){
-        if(aux[k]+this->vector_matrix[j][k] == 0){
+  for (int i = 0; i < vector_matrix.size() - aux_value; i++){
+    std::vector<int> aux = vector_matrix[i];
+    for (int j = i; j < (i + aux_value) ; (j = j + num_steps)){
+      for (int k = 0; k < vector_matrix[j].size(); k++){
+        if(aux[k]+vector_matrix[j][k] == 0){
            aux[k]=0;
         }else{
            aux[k]=1;
@@ -311,14 +218,33 @@ std::vector<std::vector<int> > DataLabelingBrittany::concatenate_vector(){
 }
 
 void DataLabelingBrittany::save_npy(std::vector<std::vector<int> > vector){
-  const long unsigned longs [] = {vector.size(), 256, 256, 1};
 
-  std::vector<int> global_vector = this->vector_to_global_vector(vector);
-  npy::SaveArrayAsNumpy(this->directory+this->get_name_npy_file(), false, 4, longs, global_vector);
+    // Imagenes
+  const long unsigned raw [] = {vector.size(), 256, 256};
+  std::vector<int> global_vector_raw = vector_to_global_vector(vector);
+  npy::SaveArrayAsNumpy(directory+"/raw/"+get_name_npy_file(), false, 3, raw, global_vector_raw);
+
+  // Labels
+  const long unsigned label [] = {vector.size()};
+  std::vector<int> global_vector_label = vector_labels(vector.size());
+  npy::SaveArrayAsNumpy(directory+"/label/"+get_name_npy_file(), false, 1, label, global_vector_label);
+}
+
+/*
+ * Method that builds a vector with the id received to label data
+ */
+std::vector<int> DataLabelingBrittany::vector_labels(int number){
+  std::vector<int> label_vector;
+
+  for (int i = 0; i < number ; i++){
+    label_vector.push_back(id_label_person);
+  }
+
+  return label_vector;
 }
 
 std::string DataLabelingBrittany::get_name_npy_file(){
-  std::string archivo = this->rosbag;
+  std::string archivo = rosbag;
   size_t found = archivo.find_last_of("/");
   archivo.replace(0,found,"");
   found = archivo.find_last_of(".");
