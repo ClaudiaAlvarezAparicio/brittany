@@ -1,2 +1,3 @@
 #!/bin/bash
 echo "Esto es un prueba"
+docker run -it ros:kinetic-ros-core-xenial /bin/bash
