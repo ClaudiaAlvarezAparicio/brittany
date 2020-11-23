@@ -240,7 +240,7 @@ void Brittany::identifyPeople(){
       this->rosbag_file.replace(0,found,"");
     }
       
-    //cout << "Rosbag: " << this->rosbag_file << "\n";
+    cout << "Rosbag: " << this->rosbag_file << "\n";
     //cout << "Numero de imagenes: " << this->person_to_identify->vectorImages.size() << "\n";
     //cout << "Numero de mapas de ocupacion: " << predictions.size() << "\n";
      
