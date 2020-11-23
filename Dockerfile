@@ -1,1 +1,1 @@
-FROM FROM ros:kinetic-ros-base-xenial
+FROM ros:kinetic-ros-base-xenial
