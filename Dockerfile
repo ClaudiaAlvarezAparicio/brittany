@@ -1,1 +1,1 @@
-FROM claudiaalvarezaparicio/brittany:kinetic
+FROM FROM ros:kinetic-ros-base-xenial
