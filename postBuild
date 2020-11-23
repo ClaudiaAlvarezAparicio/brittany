@@ -1,2 +1,2 @@
 #!/bin/bash
-docker exec -it ros:kinetic-ros-base-xenial /bin/bash
+echo "Esto es un prueba"
