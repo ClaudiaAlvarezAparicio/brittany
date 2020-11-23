@@ -1,2 +1,2 @@
 #!/bin/bash
-roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/user0/user0-kitchen-07.bag
+roscore
