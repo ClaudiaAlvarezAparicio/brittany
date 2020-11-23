@@ -2,6 +2,15 @@
 
 Brittany allows a Biometric recognition through gait analysis by using LIDAR sensors. The system is based on a classification neural network which allow identify 5 diferent users in the system or intruders in it.
 
+https://mybinder.org/v2/gh/ClaudiaAlvarezAparicio/brittany/d793fb3a8b6bd36b1de3b774fbee41f286464f69
+
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ClaudiaAlvarezAparicio/brittany/d793fb3a8b6bd36b1de3b774fbee41f286464f69)
+
+
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/ClaudiaAlvarezAparicio/brittany/d793fb3a8b6bd36b1de3b774fbee41f286464f69
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
