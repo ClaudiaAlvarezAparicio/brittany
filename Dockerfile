@@ -1,1 +1,1 @@
-FROM claudiaalvarezaparicio/brittany
+FROM claudiaalvarezaparicio/brittany:kinetic
