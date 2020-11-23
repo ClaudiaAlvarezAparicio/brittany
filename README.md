@@ -56,17 +56,17 @@ Open terminal:
   
 * Example with a user of the system  
 ```  
-$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/user0-kitchen-07.bag  
+$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/user0/user0-kitchen-07.bag  
 ```  
 Output in terminal:  
 ```  
 +++++++++++ Processing Users identification... +++++++++++  
-Person with identifier: person_0. Is the user: user_0  
+The user is: user_0  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
 ```  
 * Example with a NO user of the system:  
 ```  
-$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/rosbags_no_user/no-user-livingroom-door-02.bag  
+$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/no-user/no-user-livingroom-door-02.bag  
 ```  
 Output in terminal:  
 ```  
