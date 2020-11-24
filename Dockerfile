@@ -1,1 +1,1 @@
-FROM ros:kinetic-ros-base-xenial
+FROM claudiaalvarezaparicio/brittany:github
