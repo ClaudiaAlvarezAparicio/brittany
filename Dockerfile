@@ -18,7 +18,8 @@ USER ${NB_USER}
 
 USER jovyan
 
-RUN ls /home/jovyan/
+RUN ls -la /home/jovyan/
+RUN cat /home/jovyan/get_data_rosbags.sh
 
 EXPOSE 8888
 
