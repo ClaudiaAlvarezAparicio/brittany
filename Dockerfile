@@ -20,5 +20,5 @@ USER jovyan
 
 EXPOSE 8888
 
-ENTRYPOINT ["/home/student/get_data_rosbags.sh"]
+ENTRYPOINT ["/home/jovyan/get_data_rosbags.sh"]
 CMD ["start"]
