@@ -18,6 +18,8 @@ USER ${NB_USER}
 
 USER jovyan
 
+RUN ls /home/jovyan/
+
 EXPOSE 8888
 
 ENTRYPOINT ["/home/jovyan/get_data_rosbags.sh"]
