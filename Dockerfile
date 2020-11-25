@@ -1,2 +1,2 @@
-FROM claudiaalvarezaparicio/brittany:github
+FROM peter/brittany:github
 
