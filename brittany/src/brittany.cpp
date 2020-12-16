@@ -205,8 +205,15 @@ void Brittany::getPointInMatrix(geometry_msgs::Point pointLaser, int *i, int *j)
  * 
  */
 void Brittany::identifyPeople(){
-  std::cout << "+++++++++++ Processing Users identification... +++++++++++" << '\n';
-  // Create images with concat_10_3 configuration
+  // To print the name of the rosbag file    
+  if (this->rosbag == true){
+    size_t found = this->rosbag_file.find_last_of("/");
+    this->rosbag_file.replace(0,found,"");
+    std::cout << "+++++++++++ Processing User identification for rosbag: "<< this->rosbag_file <<  " +++++++++++" << '\n';
+  }else{
+    std::cout << "+++++++++++ Processing User identification... +++++++++++" << '\n';
+  }
+  // Create images with the configuration
   std::vector< cv::Mat > images_person;
   std::vector< std::vector<float> > predictions;
 
@@ -234,13 +241,8 @@ void Brittany::identifyPeople(){
     }
     // To print the float values with two decimals  
     std::cout << std::setprecision(2);
-    // To print the name of the rosbaf file    
-    if (this->rosbag == true){
-      size_t found = this->rosbag_file.find_last_of("/");
-      this->rosbag_file.replace(0,found,"");
-    }
-      
-    cout << "Rosbag: " << this->rosbag_file << "\n";
+    
+    //cout << "Rosbag: " << this->rosbag_file << "\n";
     //cout << "Numero de imagenes: " << this->person_to_identify->vectorImages.size() << "\n";
     //cout << "Numero de mapas de ocupacion: " << predictions.size() << "\n";
      

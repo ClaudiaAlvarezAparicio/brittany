@@ -1,2 +1,0 @@
-FROM peter/brittany:github
-
