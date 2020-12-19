@@ -40,50 +40,37 @@ To test Brittany we have create two docker images, steps to launch it:
 * ROS Kinetic
 ```  
 $ docker pull claudiaalvarezaparicio/brittany:kinetic  
-$ docker run -d -p 6901:6901 -e VNC_PW=brittany --name=brittany claudiaalvarezaparicio/brittany:kinetic  
+$ docker run claudiaalvarezaparicio/brittany:kinetic  
 ```  
 * ROS Melodic
 ```  
 $ docker pull claudiaalvarezaparicio/brittany:melodic  
-$ docker run -d -p 6901:6901 -e VNC_PW=brittany --name=brittany claudiaalvarezaparicio/brittany:melodic  
+$ docker run claudiaalvarezaparicio/brittany:melodic  
 ```  
 
-In the browser: http://localhost:6901/  
-Password: brittany  
-  
-### Execute Brittany in docker  
-Open terminal:   
-  
-* Example with a user of the system  
-```  
-$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/user0/user0-kitchen-07.bag  
-```  
-Output in terminal:  
-```  
-+++++++++++ Processing Users identification... +++++++++++  
+### Output 
+The result of executing each rosbag. Examples:  
+
++++++++++++ Processing User identification for rosbag: /user0-kitchen-07.bag +++++++++++  
 The user is: user_0  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
-```  
-* Example with a NO user of the system:  
-```  
-$ roslaunch brittany brittany_rosbag.launch rosbag_file:=/home/student/rosbags_brittany/no-user/no-user-livingroom-door-02.bag  
-```  
-Output in terminal:  
-```  
-+++++++++++ Processing Users identification... +++++++++++  
+
++++++++++++ Processing User identification for rosbag: /user1-livingroom-window-10.bag +++++++++++  
 The user is: user_1  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
 
-OR
-
-+++++++++++ Processing Users identification... +++++++++++  
-The user is: NOT IDENTIFIED IN THE SYSTEM  
++++++++++++ Processing User identification for rosbag: /user2-kitchen-11.bag +++++++++++   
+The user is: user_2  
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
 
++++++++++++ Processing User identification for rosbag: /user3-livingroom-window-12.bag +++++++++++  
+The user is: user_3  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
 
-```  
-## Stop and Remove Docker Container   
-```  
-$ docker stop brittany
-$ docker rm brittany 
-```  
++++++++++++ Processing User identification for rosbag: /user4-livingroom-door-08.bag +++++++++++  
+The user is: user_4  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
+
++++++++++++ Processing User identification for rosbag: /no-user-livingroom-window-06.bag +++++++++++  
+The user is: NOT IDENTIFIED IN THE SYSTEM  
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
