@@ -30,6 +30,7 @@ DataLabelingBrittany::DataLabelingBrittany(ros::NodeHandle nh):range_person(0.50
   nh.getParam("id_label_person", id_label_person);
   nh.getParam("num_img_concat", num_images);
   nh.getParam("num_steps_between_concat", num_steps);
+  this->num_steps = num_steps + 1;
 
   // Sincronizamos la recogida de datos del LIDAR y de PeTra
   people_sub.subscribe(nh, "/people", 1);

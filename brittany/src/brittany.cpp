@@ -29,8 +29,9 @@ Brittany::Brittany(ros::NodeHandle nh):range_person(0.50){
   nh.getParam("scan_topic", this->scan_topic);
   nh.getParam("rosbag_file", this->rosbag_file);
   nh.getParam("num_img_concat", num_images);
-  nh.getParam("num_steps_between_concat", num_steps);
   nh.getParam("networkModel", networkModel);
+  nh.getParam("num_steps_between_concat", num_steps);
+  this->num_steps = num_steps + 1;
 
   // Publishers and subscribers
   identificador_pub = nh.advertise<std_msgs::String>("/brittany",1);
