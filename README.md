@@ -36,16 +36,13 @@ $ roslaunch brittany brittany.launch
 ```
 
 ## Docker Image   
-To test Brittany we have create two docker images, steps to launch it:  
-* ROS Kinetic
-```  
-$ docker pull claudiaalvarezaparicio/brittany:kinetic  
-$ docker run claudiaalvarezaparicio/brittany:kinetic  
-```  
-* ROS Melodic
-```  
-$ docker pull claudiaalvarezaparicio/brittany:melodic  
-$ docker run claudiaalvarezaparicio/brittany:melodic  
+To test Brittany we have created a docker image, steps to launch it:  
+```
+$ docker pull claudiaalvarezaparicio/brittany:latest  
+$ docker run claudiaalvarezaparicio/brittany:latest <5, 10> <0, 1, 2>  
+where:
+<5, 10>: number of images to concatenate
+<0, 1, 2>: number of steps between images   
 ```  
 
 ### Output 
