@@ -29,6 +29,7 @@ namespace networkprediction{
     tensorflow::SessionOptions options;
     Status status;
     GraphDef graph_def;
+    std::string model;
 
     void openConnection();
     void closeConnection();

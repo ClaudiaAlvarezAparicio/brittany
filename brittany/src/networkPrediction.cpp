@@ -5,6 +5,7 @@ using namespace networkprediction;
 NetworkPrediction::NetworkPrediction(std::string networkModel){
   // Load graph
   this->status = ReadBinaryProto(Env::Default(), ros::package::getPath("brittany") + "/model/" + networkModel, &graph_def);
+  this->model = networkModel;
   if (!this->status.ok()) {
     std::cout << this->status.ToString() << "\n";
     ros::shutdown();
@@ -52,7 +53,12 @@ std::vector<float> NetworkPrediction::prediction(cv::Mat image){
   // Define input and output layers
   std::vector<std::pair<string, tensorflow::Tensor>> inputs = {{"conv2d_1_input", image_tensor}};
   std::vector<Tensor> outputs;
-  this->status = this->session->Run(inputs, {"dense_2/Softmax"}, {}, &outputs);
+
+  if (this->model.find("custom") != std::string::npos) {
+    this->status = this->session->Run(inputs, {"dense_2/Softmax"}, {}, &outputs);
+  }else if((this->model.find("lenet") != std::string::npos) || (this->model.find("alexnet") != std::string::npos)){
+    this->status = this->session->Run(inputs, {"dense_3/Softmax"}, {}, &outputs);
+  }
 
   if (!this->status.ok()) {
     std::cout << "Running model failed: " << this->status;

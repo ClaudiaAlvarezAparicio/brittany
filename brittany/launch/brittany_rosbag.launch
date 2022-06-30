@@ -6,7 +6,7 @@
   <arg name="rosbag_start_delay" default="4.0" />
   <arg name="num_img_concat" default="10" /> <!-- Number of images to concatenate -->
   <arg name="num_steps_between_concat" default="1" /> <!-- Number of steps between the images-->
-  <arg name="networkModel" default="concat_10_1.pb" />
+  <arg name="networkModel" default="custom/custom_10_1.pb" /> <!-- CNN model -->
 
   <node pkg="brittany" type="brittany" name="brittany" args="" output="screen" required="true">
     <param name="rosbag" value="true" />
