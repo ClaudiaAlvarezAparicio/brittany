@@ -39,8 +39,9 @@ $ roslaunch brittany brittany.launch
 To test Brittany we have created a docker image, steps to launch it:  
 ```
 $ docker pull claudiaalvarezaparicio/brittany:latest  
-$ docker run claudiaalvarezaparicio/brittany:latest <5, 10> <0, 1, 2>  
+$ docker run claudiaalvarezaparicio/brittany:latest <custom, lenet, alexnet> <5, 10> <0, 1, 2>  
 where:
+<custom, lenet, alexnet>: the model to execute
 <5, 10>: number of images to concatenate
 <0, 1, 2>: number of steps between images   
 ```  
